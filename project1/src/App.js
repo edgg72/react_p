@@ -8,33 +8,36 @@ import UserOutput from './UserOutput/UserOutput';
 class App extends Component {
   state = {
     persons: [
-      { name: 'Max', age: 28 },
-      { name: 'Manu', age: 29 },
-      { name: 'Stephanie', age: 26 }
+      {id: 'qwerty', name: 'Max', age: 28 },
+      {id: 'asdfg', name: 'Manu', age: 29 },
+      {id: 'zxcvb', name: 'Stephanie', age: 26 }
     ],
-    username: 'supermax'
+    username: 'supermax',
+    showPersons: false
   };
 
-  switchNameHandler = (newName) => {
-    // console.log('Was clicked!');
-    // DON'T DO THIS: this.state.persons[0].name = 'Maximilian';
-    this.setState({
-      persons: [
-        { name: newName, age: 28 },
-        { name: 'Manu', age: 29 },
-        { name: 'Stephanie', age: 27 }
-      ]
+  nameChangedHandler = (event, id) => {
+    const personIndex = this.state.persons.findIndex(prsn => {
+      return prsn.id === id;
     });
-  };
 
-  nameChangedHandler = (event) => {
-    this.setState({
-      persons: [
-        { name: 'Max', age: 28 },
-        { name: event.target.value, age: 29 },
-        { name: 'Stephanie', age: 27 }
-      ]
-    });
+    const person = {
+      ...this.state.persons[personIndex]
+    };
+
+    person.name = event.target.value;
+    const persons = [...this.state.persons];
+    persons[personIndex] = person;
+
+    this.setState({persons: persons});
+  }
+
+  deletePersonHandler = (personIndex) => {
+    //const persons = this.state.persons.slice(); <= another way to copy the array
+    //next, the ES6 way with the spread operator
+    const persons = [...this.state.persons]
+    persons.splice(personIndex, 1);
+    this.setState({persons: persons});
   }
 
   testHandler = (event) => {
@@ -47,38 +50,60 @@ class App extends Component {
       username: event.target.value
     });
   }
+
+  togglePersonsHandler = () => {
+    const doesShow = this.state.showPersons;
+    this.setState({showPersons: !doesShow})
+  }
+
   render() {
 
     const style = {
-      backgroundColor: 'white',
+      backgroundColor: 'green',
+      color: 'white',
       font: 'inherit',
       border: '1px solid blue',
       padding: '8px',
       cursor: 'pointer'
     };
+
+    let persons = null;
+    if (this.state.showPersons) {
+      persons = (
+        <div>
+          {this.state.persons.map((prsn, index) => {
+            return <Person
+              click={() => this.deletePersonHandler(index)}
+              name={prsn.name}
+              age={prsn.age}
+              key={prsn.id}
+              changed={(event) => this.nameChangedHandler(event, prsn.id)}/>
+          })}
+        </div>
+      )
+      style.backgroundColor = 'red';
+    }
+
+    const classes = [];
+    if (this.state.persons.length <= 2) {
+      classes.push('red'); // classes = ['red']
+    }
+    if (this.state.persons.length <= 1) {
+      classes.push('bold'); // classes = ['red', 'bold']
+    }
+
     return (
       <div className="App">
         <h1>Hi, I'm a react app</h1>
-        <p>This is really working!</p>
+        <p className={classes.join(' ')}>This is really working!</p>
         <button
           style={style}
-          onClick={() => this.switchNameHandler('Maximilian!!')}>Switch Name</button>
-        <Person
-          name={this.state.persons[0].name}
-          age={this.state.persons[0].age}/>
-        <Person
-          name={this.state.persons[1].name}
-          age={this.state.persons[1].age}
-          click={this.switchNameHandler.bind(this, 'Max!')}
-          changed={this.nameChangedHandler}>My hobbies: racing</Person>
-        <Person
-          name={this.state.persons[2].name}
-          age={this.state.persons[2].age}/>
-          <UserInput
-            changed={this.testHandler}
-            currentName={this.state.username}
-            >
-
+          onClick={() => this.togglePersonsHandler()}>Toggle Persons</button>
+        {persons}
+        <UserInput
+          changed={this.testHandler}
+          currentName={this.state.username}
+          >
           </UserInput>
           <UserOutput name={this.state.username}></UserOutput>
           <UserOutput name={this.state.username}></UserOutput>
@@ -92,4 +117,3 @@ class App extends Component {
 }
 
 export default App;
-
